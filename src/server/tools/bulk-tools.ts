@@ -570,7 +570,6 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
       });
     }
 
-    const untaggedFiles = files.filter(f => f.tags.length === 0).length;
     if (untaggedFiles > 0) {
       health.issues.push({
         type: 'untagged_files',
