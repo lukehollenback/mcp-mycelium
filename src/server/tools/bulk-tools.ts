@@ -522,7 +522,18 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
           embeddingCoverage: indexStats.totalFiles > 0 ? (indexStats.totalEmbeddings / indexStats.totalFiles) * 100 : 0,
         },
       },
-      issues: [],
+      issues: [] as Array<{
+        type: string;
+        severity: string;
+        count: number;
+        message: string;
+      }>,
+      recommendations: [] as Array<{
+        type: string;
+        priority: string;
+        action: string;
+        description: string;
+      }>,
     };
 
     // Calculate scores
