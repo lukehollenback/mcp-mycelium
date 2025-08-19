@@ -21,7 +21,6 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "removeComments": false,
     "importHelpers": true,
     "downlevelIteration": true,
@@ -35,8 +34,7 @@
     "types": ["node"]
   },
   "include": [
-    "src/**/*",
-    "tests/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",

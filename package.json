@@ -18,7 +18,7 @@
     "test:real-world": "./scripts/test-real-vaults.sh",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build"
   },
