@@ -36,14 +36,19 @@ export class MCPMyceliumServer {
   private performanceMetrics = new Map<string, { calls: number; totalTime: number; errors: number }>();
 
   constructor(private options: MCPServerOptions) {
-    this.logger = pino({
+    const loggerConfig: any = {
       name: 'MCPMyceliumServer',
       level: options.logLevel || 'info',
-      transport: options.logLevel === 'debug' ? {
+    };
+    
+    if (options.logLevel === 'debug') {
+      loggerConfig.transport = {
         target: 'pino-pretty',
         options: { colorize: true },
-      } : undefined,
-    });
+      };
+    }
+    
+    this.logger = pino(loggerConfig);
 
     this.server = new Server(
       {
