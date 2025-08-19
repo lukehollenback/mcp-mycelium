@@ -67,13 +67,14 @@ export class FileMonitor extends EventEmitter {
       this.watcher.on('change', (path: string) => this.handleFileEvent('change', path));
       this.watcher.on('unlink', (path: string) => this.handleFileEvent('unlink', path));
 
-      this.watcher.on('error', (error: Error) => {
+      this.watcher.on('error', (error: unknown) => {
         this.logger.error({ error, path: this.watchPath }, 'File watcher error');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         this.emit('error', new FileMonitorError(
-          `File watcher error: ${error.message}`,
+          `File watcher error: ${errorMessage}`,
           this.watchPath,
           'watch',
-          error
+          error instanceof Error ? error : undefined
         ));
       });
 

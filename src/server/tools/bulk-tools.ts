@@ -490,14 +490,14 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
     const files = targetVault.indexer.getAllFiles();
     const tagStats = targetVault.tagEngine.getAllTags();
 
-    const health: any = {
+    const health = {
       vault: targetVault.name,
-      overall: 'good',
+      overall: 'good' as 'excellent' | 'good' | 'fair' | 'poor',
       scores: {
-        connectivity: 0,
-        organization: 0,
-        completeness: 0,
-        consistency: 0,
+        connectivity: 0 as number,
+        organization: 0 as number,
+        completeness: 0 as number,
+        consistency: 0 as number,
       },
       stats: {
         files: {
