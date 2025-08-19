@@ -1,0 +1,71 @@
+{
+  "name": "mcp-mycelium",
+  "version": "1.0.0",
+  "description": "A sophisticated Model Context Protocol server for managing markdown-based knowledge bases with intelligent indexing, graph relationships, and AI-friendly operations",
+  "type": "module",
+  "main": "dist/server/mcp-server.js",
+  "bin": {
+    "mcp-mycelium": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/cli.ts",
+    "start": "node dist/cli.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:e2e:real-vaults": "vitest tests/e2e/real-world-vaults.test.ts",
+    "test:real-world": "./scripts/test-real-vaults.sh",
+    "lint": "eslint src tests --ext .ts",
+    "lint:fix": "eslint src tests --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "knowledge-base",
+    "markdown",
+    "ai",
+    "embeddings",
+    "graph",
+    "semantic-search",
+    "mycelium"
+  ],
+  "author": "MCP Mycelium Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "chokidar": "^4.0.1",
+    "js-yaml": "^4.1.0",
+    "gray-matter": "^4.0.3",
+    "commander": "^12.1.0",
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.2.2",
+    "ajv": "^8.17.1",
+    "node-fetch": "^3.3.2",
+    "compromise": "^14.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node-fetch": "^2.6.11",
+    "@typescript-eslint/eslint-plugin": "^8.5.0",
+    "@typescript-eslint/parser": "^8.5.0",
+    "eslint": "^9.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.0.5",
+    "@vitest/coverage-v8": "^2.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "config",
+    "README.md",
+    "LICENSE"
+  ]
+}
