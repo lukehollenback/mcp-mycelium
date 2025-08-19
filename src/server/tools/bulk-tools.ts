@@ -489,6 +489,7 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
 
     const files = targetVault.indexer.getAllFiles();
     const tagStats = targetVault.tagEngine.getAllTags();
+    const untaggedFiles = files.filter(f => f.tags.length === 0).length;
 
     const health = {
       vault: targetVault.name,
@@ -504,7 +505,7 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
           total: indexStats.totalFiles,
           indexed: indexStats.indexedFiles,
           orphaned: orphanedFiles.length,
-          withoutTags: files.filter(f => f.tags.length === 0).length,
+          withoutTags: untaggedFiles,
         },
         links: {
           total: linkStats.totalLinks,
@@ -532,7 +533,8 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
         type: string;
         priority: string;
         action: string;
-        description: string;
+        description?: string;
+        impact?: string;
       }>,
     };
 
