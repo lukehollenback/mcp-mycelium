@@ -489,22 +489,23 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
 
     const files = targetVault.indexer.getAllFiles();
     const tagStats = targetVault.tagEngine.getAllTags();
+    const untaggedFiles = files.filter(f => f.tags.length === 0).length;
 
-    const health: any = {
+    const health = {
       vault: targetVault.name,
-      overall: 'good',
+      overall: 'good' as 'excellent' | 'good' | 'fair' | 'poor',
       scores: {
-        connectivity: 0,
-        organization: 0,
-        completeness: 0,
-        consistency: 0,
+        connectivity: 0 as number,
+        organization: 0 as number,
+        completeness: 0 as number,
+        consistency: 0 as number,
       },
       stats: {
         files: {
           total: indexStats.totalFiles,
           indexed: indexStats.indexedFiles,
           orphaned: orphanedFiles.length,
-          withoutTags: files.filter(f => f.tags.length === 0).length,
+          withoutTags: untaggedFiles,
         },
         links: {
           total: linkStats.totalLinks,
@@ -522,7 +523,19 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
           embeddingCoverage: indexStats.totalFiles > 0 ? (indexStats.totalEmbeddings / indexStats.totalFiles) * 100 : 0,
         },
       },
-      issues: [],
+      issues: [] as Array<{
+        type: string;
+        severity: string;
+        count: number;
+        message: string;
+      }>,
+      recommendations: [] as Array<{
+        type: string;
+        priority: string;
+        action: string;
+        description?: string;
+        impact?: string;
+      }>,
     };
 
     // Calculate scores
@@ -531,7 +544,7 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
     health.scores.completeness = Math.min(100, (indexStats.totalEmbeddings / Math.max(1, indexStats.totalFiles)) * 100);
     health.scores.consistency = Math.max(0, 100 - (tagStats.filter(t => t.fileCount === 0).length / Math.max(1, tagStats.length)) * 100);
 
-    const averageScore = Object.values(health.scores).reduce((sum: any, score: any) => sum + score, 0) / 4;
+    const averageScore = Object.values(health.scores).reduce((sum: number, score: number) => sum + score, 0) / 4;
     
     if (averageScore >= 80) health.overall = 'excellent';
     else if (averageScore >= 60) health.overall = 'good';
@@ -557,7 +570,6 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
       });
     }
 
-    const untaggedFiles = files.filter(f => f.tags.length === 0).length;
     if (untaggedFiles > 0) {
       health.issues.push({
         type: 'untagged_files',

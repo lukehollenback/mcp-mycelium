@@ -147,43 +147,56 @@ export class OpenAIEmbeddingProvider extends EmbeddingProvider {
       encoding_format: 'float',
     };
 
-    const response = await fetch(this.apiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.config.apiKey}`,
-        'Content-Type': 'application/json',
-        'User-Agent': 'mcp-mycelium/1.0.0',
-      },
-      body: JSON.stringify(requestBody),
-      timeout: this.config.timeout || 30000,
-    });
+    const controller = new AbortController();
+    const timeoutMs = this.config.timeout || 30000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    
+    try {
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.config.apiKey}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'mcp-mycelium/1.0.0',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      const errorData = await response.json() as OpenAIErrorResponse;
-      const errorMessage = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
-      
-      this.logger.error({
-        status: response.status,
-        error: errorData.error,
-        model: this.config.model,
-      }, 'OpenAI API error');
+      if (!response.ok) {
+        const errorData = await response.json() as OpenAIErrorResponse;
+        const errorMessage = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+        
+        this.logger.error({
+          status: response.status,
+          error: errorData.error,
+          model: this.config.model,
+        }, 'OpenAI API error');
 
-      throw new Error(`OpenAI API error: ${errorMessage}`);
+        throw new Error(`OpenAI API error: ${errorMessage}`);
+      }
+
+      const data = await response.json() as OpenAIEmbeddingResponse;
+
+      if (isDryRun) {
+        this.logger.debug('OpenAI API connection test successful');
+      } else {
+        this.logger.debug({
+          model: data.model,
+          tokens: data.usage.total_tokens,
+          embeddingCount: data.data.length,
+        }, 'OpenAI embedding request completed');
+      }
+
+      return data;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timeout after ${timeoutMs}ms`);
+      }
+      throw error;
     }
-
-    const data = await response.json() as OpenAIEmbeddingResponse;
-
-    if (isDryRun) {
-      this.logger.debug('OpenAI API connection test successful');
-    } else {
-      this.logger.debug({
-        model: data.model,
-        tokens: data.usage.total_tokens,
-        embeddingCount: data.data.length,
-      }, 'OpenAI embedding request completed');
-    }
-
-    return data;
   }
 
   private truncateText(text: string, maxTokens: number): string {

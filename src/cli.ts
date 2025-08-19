@@ -21,14 +21,19 @@ program
   .option('-d, --dry-run', 'Validate configuration without starting server', false)
   .option('-v, --validate', 'Validate vaults and configuration', false)
   .action(async (vaults: string[], options) => {
-    const logger = pino({
+    const loggerConfig: any = {
       name: 'mcp-mycelium-cli',
       level: options.logLevel,
-      transport: options.logLevel === 'debug' ? {
+    };
+    
+    if (options.logLevel === 'debug') {
+      loggerConfig.transport = {
         target: 'pino-pretty',
         options: { colorize: true },
-      } : undefined,
-    });
+      };
+    }
+    
+    const logger = pino(loggerConfig);
 
     try {
       const configDir = resolve(options.config);
