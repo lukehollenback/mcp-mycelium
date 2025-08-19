@@ -35,9 +35,9 @@ export abstract class EmbeddingProvider {
     this.config = config;
   }
 
-  abstract async embed(text: string): Promise<EmbeddingResult>;
+  abstract embed(text: string): Promise<EmbeddingResult>;
   
-  abstract async embedBatch(texts: string[]): Promise<EmbeddingBatch>;
+  abstract embedBatch(texts: string[]): Promise<EmbeddingBatch>;
   
   abstract getDimension(): number;
   

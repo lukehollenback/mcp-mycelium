@@ -21,7 +21,7 @@ export class FileMonitorError extends Error {
 }
 
 export class FileMonitor extends EventEmitter {
-  private watcher?: chokidar.FSWatcher;
+  private watcher?: ReturnType<typeof chokidar.watch>;
   private changeBuffer = new Map<string, FileChangeEvent>();
   private debounceTimer?: NodeJS.Timeout;
   private logger = pino({ name: 'FileMonitor' });
@@ -63,11 +63,11 @@ export class FileMonitor extends EventEmitter {
         },
       });
 
-      this.watcher.on('add', (path) => this.handleFileEvent('add', path));
-      this.watcher.on('change', (path) => this.handleFileEvent('change', path));
-      this.watcher.on('unlink', (path) => this.handleFileEvent('unlink', path));
+      this.watcher.on('add', (path: string) => this.handleFileEvent('add', path));
+      this.watcher.on('change', (path: string) => this.handleFileEvent('change', path));
+      this.watcher.on('unlink', (path: string) => this.handleFileEvent('unlink', path));
 
-      this.watcher.on('error', (error) => {
+      this.watcher.on('error', (error: Error) => {
         this.logger.error({ error, path: this.watchPath }, 'File watcher error');
         this.emit('error', new FileMonitorError(
           `File watcher error: ${error.message}`,

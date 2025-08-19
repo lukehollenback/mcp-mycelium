@@ -531,7 +531,7 @@ export async function handleAnalyzeVaultHealth(args: any, context: ToolContext):
     health.scores.completeness = Math.min(100, (indexStats.totalEmbeddings / Math.max(1, indexStats.totalFiles)) * 100);
     health.scores.consistency = Math.max(0, 100 - (tagStats.filter(t => t.fileCount === 0).length / Math.max(1, tagStats.length)) * 100);
 
-    const averageScore = Object.values(health.scores).reduce((sum: any, score: any) => sum + score, 0) / 4;
+    const averageScore = Object.values(health.scores).reduce((sum: number, score: number) => sum + score, 0) / 4;
     
     if (averageScore >= 80) health.overall = 'excellent';
     else if (averageScore >= 60) health.overall = 'good';
