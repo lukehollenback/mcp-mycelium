@@ -126,27 +126,7 @@ export function createSearchTools(context: ToolContext): Tool[] {
   ];
 }
 
-export async function handleSearchContent(args: SearchContentArgs, context: ToolContext): Promise<{
-  results: Array<{
-    file: {
-      path: string;
-      title?: string;
-      lastModified: Date;
-      tags: string[];
-      size: number;
-    };
-    score: number;
-    relevance: unknown;
-    matches: Array<{
-      type: string;
-      text: string;
-      context?: string;
-    }>;
-  }>;
-  query: string;
-  totalResults: number;
-  vault: string;
-}> {
+export async function handleSearchContent(args: any, context: ToolContext): Promise<any> {
   const { query, vault, filters, limit, threshold } = args;
   const { vaultManager, searchEngine } = context;
 
@@ -189,21 +169,7 @@ export async function handleSearchContent(args: SearchContentArgs, context: Tool
   }
 }
 
-export async function handleSemanticSearch(args: SemanticSearchArgs, context: ToolContext): Promise<{
-  results: Array<{
-    file: {
-      path: string;
-      title?: string;
-      lastModified: Date;
-      tags: string[];
-    };
-    score: number;
-    semanticSimilarity: unknown;
-  }>;
-  query: string;
-  totalResults: number;
-  vault: string;
-}> {
+export async function handleSemanticSearch(args: any, context: ToolContext): Promise<any> {
   const { query, vault, limit } = args;
   const { vaultManager, searchEngine } = context;
 
@@ -211,7 +177,7 @@ export async function handleSemanticSearch(args: SemanticSearchArgs, context: To
     const targetVault = vaultManager.getVault(vault);
     const files = targetVault.indexer.getAllFiles();
 
-    const results = await searchEngine.semanticSearch(query, files, limit);
+    const results = await searchEngine.semanticSearch(query, files, limit || 10);
 
     return {
       results: results.map(result => ({
@@ -233,26 +199,7 @@ export async function handleSemanticSearch(args: SemanticSearchArgs, context: To
   }
 }
 
-export async function handleTextSearch(args: TextSearchArgs, context: ToolContext): Promise<{
-  results: Array<{
-    file: {
-      path: string;
-      title?: string;
-      lastModified: Date;
-      tags: string[];
-    };
-    score: number;
-    matches: Array<{
-      type: string;
-      text: string;
-      context?: string;
-      position: unknown;
-    }>;
-  }>;
-  query: string;
-  totalResults: number;
-  vault: string;
-}> {
+export async function handleTextSearch(args: any, context: ToolContext): Promise<any> {
   const { query, vault, caseSensitive, limit } = args;
   const { vaultManager, searchEngine } = context;
 

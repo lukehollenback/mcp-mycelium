@@ -242,25 +242,25 @@ export class MCPMyceliumServer {
     switch (name) {
       // Search tools
       case 'search_content':
-        return await handleSearchContent(args, context);
+        return await handleSearchContent(args as any, context);
       case 'semantic_search':
-        return await handleSemanticSearch(args, context);
+        return await handleSemanticSearch(args as any, context);
       case 'text_search':
-        return await handleTextSearch(args, context);
+        return await handleTextSearch(args as any, context);
       
       // File tools
       case 'read_file':
-        return await handleReadFile(args, context);
+        return await handleReadFile(args as any, context);
       case 'write_file':
-        return await handleWriteFile(args, context);
+        return await handleWriteFile(args as any, context);
       case 'update_file':
-        return await handleUpdateFile(args, context);
+        return await handleUpdateFile(args as any, context);
       case 'create_file':
-        return await handleCreateFile(args, context);
+        return await handleCreateFile(args as any, context);
       case 'delete_file':
-        return await handleDeleteFile(args, context);
+        return await handleDeleteFile(args as any, context);
       case 'get_file_metadata':
-        return await handleGetFileMetadata(args, context);
+        return await handleGetFileMetadata(args as any, context);
       
       // Graph tools
       case 'get_tags':
@@ -300,17 +300,17 @@ export class MCPMyceliumServer {
       
       // Bulk tools
       case 'bulk_search':
-        return await handleBulkSearch(args, context);
+        return await handleBulkSearch(args as any, context);
       case 'bulk_validate':
-        return await handleBulkValidate(args, context);
+        return await handleBulkValidate(args as any, context);
       case 'reindex_vault':
-        return await handleReindexVault(args, context);
+        return await handleReindexVault(args as any, context);
       case 'bulk_tag_operation':
-        return await handleBulkTagOperation(args, context);
+        return await handleBulkTagOperation(args as any, context);
       case 'export_graph':
-        return await handleExportGraph(args, context);
+        return await handleExportGraph(args as any, context);
       case 'analyze_vault_health':
-        return await handleAnalyzeVaultHealth(args, context);
+        return await handleAnalyzeVaultHealth(args as any, context);
         
       default:
         throw new McpError(ErrorCode.MethodNotFound, `Tool implementation not found: ${name}`);

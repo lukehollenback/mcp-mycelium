@@ -200,13 +200,7 @@ export function createBulkTools(context: ToolContext): Tool[] {
   ];
 }
 
-export async function handleBulkSearch(args: BulkSearchArgs, context: ToolContext): Promise<{
-  queries: string[];
-  vault: string;
-  combinedResults?: SearchResult[];
-  totalCombined?: number;
-  results?: Record<string, SearchResult[]>;
-}> {
+export async function handleBulkSearch(args: any, context: ToolContext): Promise<any> {
   const { queries, vault, limit, combineResults } = args;
   const { vaultManager, searchEngine } = context;
 
@@ -214,8 +208,8 @@ export async function handleBulkSearch(args: BulkSearchArgs, context: ToolContex
     const targetVault = vaultManager.getVault(vault);
     const files = targetVault.indexer.getAllFiles();
     
-    const results: Record<string, SearchResult[]> = {};
-    const allResults: SearchResult[] = [];
+    const results: any = {};
+    const allResults: any[] = [];
 
     for (const query of queries) {
       const searchQuery: SearchQuery = {
@@ -242,13 +236,7 @@ export async function handleBulkSearch(args: BulkSearchArgs, context: ToolContex
       }
     }
 
-    const response: {
-      queries: string[];
-      vault: string;
-      combinedResults?: SearchResult[];
-      totalCombined?: number;
-      results?: Record<string, SearchResult[]>;
-    } = {
+    const response: any = {
       queries,
       vault: targetVault.name,
     };
@@ -270,20 +258,7 @@ export async function handleBulkSearch(args: BulkSearchArgs, context: ToolContex
   }
 }
 
-export async function handleBulkValidate(args: BulkValidateArgs, context: ToolContext): Promise<{
-  results: Array<{
-    path: string;
-    valid: boolean;
-    errors: ValidationResult['errors'];
-    warnings: ValidationResult['warnings'];
-    suggestions: ValidationResult['suggestions'];
-  }>;
-  totalFiles: number;
-  validatedFiles: number;
-  vault: string;
-  pattern?: string;
-  rules?: string[];
-}> {
+export async function handleBulkValidate(args: any, context: ToolContext): Promise<any> {
   const { vault, pattern, rules, onlyErrors } = args;
   const { vaultManager } = context;
 
@@ -312,13 +287,7 @@ export async function handleBulkValidate(args: BulkValidateArgs, context: ToolCo
 
     const validationResults = await targetVault.validator.validateBatch(filesToValidateArray);
     
-    const results: Array<{
-      path: string;
-      valid: boolean;
-      errors: ValidationResult['errors'];
-      warnings: ValidationResult['warnings'];
-      suggestions: ValidationResult['suggestions'];
-    }> = [];
+    const results: any[] = [];
     for (const [filePath, result] of validationResults) {
       if (onlyErrors && result.isValid) {
         continue;
@@ -329,8 +298,8 @@ export async function handleBulkValidate(args: BulkValidateArgs, context: ToolCo
         filteredResult = {
           ...result,
           errors: result.errors.filter(e => rules.includes(e.rule)),
-          warnings: result.warnings.filter(w => rules.includes(w.rule)),
-          suggestions: result.suggestions.filter(s => rules.includes(s.rule)),
+          warnings: result.warnings.filter(w => rules.includes(w.rule)) as any,
+          suggestions: result.suggestions.filter(s => rules.includes(s.rule)) as any,
         };
         filteredResult.isValid = filteredResult.errors.filter(e => e.severity === 'error').length === 0;
       }
@@ -357,18 +326,7 @@ export async function handleBulkValidate(args: BulkValidateArgs, context: ToolCo
   }
 }
 
-export async function handleReindexVault(args: ReindexVaultArgs, context: ToolContext): Promise<{
-  success: boolean;
-  vault: string;
-  duration: number;
-  stats: {
-    filesIndexed: number;
-    totalSize: number;
-    embeddings: number;
-    lastIndexed?: Date;
-  };
-  includeEmbeddings?: boolean;
-}> {
+export async function handleReindexVault(args: any, context: ToolContext): Promise<any> {
   const { vault, includeEmbeddings } = args;
   const { vaultManager } = context;
 
@@ -398,21 +356,7 @@ export async function handleReindexVault(args: ReindexVaultArgs, context: ToolCo
   }
 }
 
-export async function handleBulkTagOperation(args: BulkTagOperationArgs, context: ToolContext): Promise<{
-  operation: string;
-  tags: string[];
-  targetTags?: string[];
-  changes: Array<{
-    path: string;
-    oldTags: string[];
-    newTags: string[];
-    operation: string;
-  }>;
-  totalFiles: number;
-  modifiedFiles: number;
-  dryRun?: boolean;
-  vault: string;
-}> {
+export async function handleBulkTagOperation(args: any, context: ToolContext): Promise<any> {
   const { operation, tags, targetTags, filters, vault, dryRun } = args;
   const { vaultManager } = context;
 
@@ -520,14 +464,7 @@ export async function handleBulkTagOperation(args: BulkTagOperationArgs, context
   }
 }
 
-export async function handleExportGraph(args: ExportGraphArgs, context: ToolContext): Promise<{
-  vault: string;
-  format?: string;
-  includeTagNodes?: boolean;
-  minConnections?: number;
-  nodeCount: number;
-  data: unknown;
-}> {
+export async function handleExportGraph(args: any, context: ToolContext): Promise<any> {
   const { vault, format, includeTagNodes, minConnections } = args;
   const { vaultManager, graphAnalyzer } = context;
 
@@ -536,7 +473,7 @@ export async function handleExportGraph(args: ExportGraphArgs, context: ToolCont
     const files = targetVault.indexer.getAllFiles();
     
     let filteredFiles = files;
-    if (minConnections > 0) {
+    if (minConnections && minConnections > 0) {
       filteredFiles = files.filter(file => file.links.length >= minConnections);
     }
 
@@ -555,7 +492,7 @@ export async function handleExportGraph(args: ExportGraphArgs, context: ToolCont
   }
 }
 
-export async function handleAnalyzeVaultHealth(args: AnalyzeVaultHealthArgs, context: ToolContext): Promise<VaultHealth> {
+export async function handleAnalyzeVaultHealth(args: any, context: ToolContext): Promise<any> {
   const { vault, includeRecommendations } = args;
   const { vaultManager, graphAnalyzer } = context;
 

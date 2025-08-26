@@ -201,7 +201,7 @@ export class TemplateEngine {
     return result;
   }
 
-  private generateDefaultValue(field: string, schema: Record<string, unknown>, now: Date): unknown {
+  private generateDefaultValue(field: string, schema: any, now: Date): any {
     const fieldLower = field.toLowerCase();
     
     if (fieldLower.includes('date') || fieldLower.includes('created') || fieldLower.includes('modified')) {
@@ -321,7 +321,7 @@ export class TemplateEngine {
     return errors;
   }
 
-  private validateFieldValue(field: string, value: unknown, schema: Record<string, unknown>): string[] {
+  private validateFieldValue(field: string, value: any, schema: any): string[] {
     const errors: string[] = [];
 
     if (value === null || value === undefined) {

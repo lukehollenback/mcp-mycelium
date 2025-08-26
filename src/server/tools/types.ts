@@ -5,6 +5,8 @@ export interface SearchContentArgs {
   vault?: string;
   limit?: number;
   includeContent?: boolean;
+  filters?: Record<string, unknown>;
+  threshold?: number;
 }
 
 export interface SemanticSearchArgs {
@@ -24,18 +26,21 @@ export interface TextSearchArgs {
 export interface ReadFileArgs {
   path: string;
   vault?: string;
+  includeMetadata?: boolean;
 }
 
 export interface WriteFileArgs {
   path: string;
   content: string;
   vault?: string;
+  validateOnly?: boolean;
 }
 
 export interface UpdateFileArgs {
   path: string;
   content: string;
   vault?: string;
+  preserveMetadata?: boolean;
 }
 
 export interface CreateFileArgs {
@@ -43,12 +48,15 @@ export interface CreateFileArgs {
   content?: string;
   vault?: string;
   applyTemplate?: boolean;
+  template?: string;
+  frontmatter?: Record<string, unknown>;
 }
 
 export interface DeleteFileArgs {
   path: string;
   vault?: string;
   force?: boolean;
+  confirm?: boolean;
 }
 
 export interface GetFileMetadataArgs {
@@ -205,13 +213,17 @@ export interface FileMetadata {
   path: string;
   title?: string;
   tags: string[];
-  created?: string;
-  modified?: string;
+  created?: Date;
+  modified: Date;
   size: number;
   links: Array<{
     target: string;
     text?: string;
   }>;
+  exists?: boolean;
+  frontmatter?: Record<string, unknown>;
+  lastIndexed?: Date;
+  hasEmbeddings?: boolean;
 }
 
 export interface TagInfo {

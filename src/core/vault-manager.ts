@@ -138,7 +138,7 @@ export class VaultManager {
     }
   }
 
-  private mergeVaultConfig(vaultConfig: VaultConfig, defaultConfig: Record<string, unknown>): Record<string, unknown> {
+  private mergeVaultConfig(vaultConfig: VaultConfig, defaultConfig: any): any {
     return {
       frontmatter: { ...defaultConfig.frontmatter, ...vaultConfig.frontmatter },
       links: { ...defaultConfig.links, ...vaultConfig.links },
