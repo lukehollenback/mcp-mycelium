@@ -64,18 +64,19 @@ describe('Embedding Providers', () => {
 
     it('should find most similar embeddings', () => {
       const queryEmbedding = { values: [1, 0, 0], dimension: 3 };
-      const fileEmbeddings = [
+      const fileData = [
         { fileId: 'file1', values: [1, 0, 0], dimension: 3 },
         { fileId: 'file2', values: [0, 1, 0], dimension: 3 },
         { fileId: 'file3', values: [0.9, 0.1, 0], dimension: 3 },
       ];
+      const fileEmbeddings = fileData.map(f => ({ values: f.values, dimension: f.dimension }));
 
-      const results = provider.findMostSimilar(queryEmbedding, fileEmbeddings, 2);
+      const results = provider.findMostSimilar(queryEmbedding, fileEmbeddings, 0.7, 2);
       
       expect(results).toHaveLength(2);
-      expect(results[0].fileId).toBe('file1'); // Most similar
+      expect(fileData[results[0].index].fileId).toBe('file1'); // Most similar
       expect(results[0].score).toBeCloseTo(1.0, 5);
-      expect(results[1].fileId).toBe('file3'); // Second most similar
+      expect(fileData[results[1].index].fileId).toBe('file3'); // Second most similar
       expect(results[1].score).toBeGreaterThan(0.8);
     });
 
@@ -124,6 +125,7 @@ describe('Embedding Providers', () => {
       expect(() => {
         new OpenAIEmbeddingProvider({
           model: 'text-embedding-3-small',
+          apiKey: '', // Empty API key should throw
           // No API key
         });
       }).toThrow(EmbeddingProviderError);

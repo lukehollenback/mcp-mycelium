@@ -223,7 +223,7 @@ export class LocalEmbeddingProvider extends EmbeddingProvider {
     }
   }
 
-  private async sendRequest(request: any): Promise<PythonEmbeddingResponse> {
+  private async sendRequest(request: Record<string, unknown>): Promise<PythonEmbeddingResponse> {
     return new Promise((resolve, reject) => {
       if (!this.pythonProcess || !this.pythonProcess.stdin) {
         reject(new Error('Python process not available'));

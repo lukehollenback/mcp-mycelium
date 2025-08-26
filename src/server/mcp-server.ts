@@ -7,48 +7,56 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 
-import { ConfigurationManager, ConfigManager } from '../utils/config.js';
+import { ConfigurationManager, type ConfigManager } from '../utils/config.js';
 import { VaultManager } from '../core/vault-manager.js';
 import { SearchEngine } from '../core/search-engine.js';
 import { GraphAnalyzer } from '../graph/graph-analyzer.js';
 import { EmbeddingProvider } from '../embeddings/embedding-provider.js';
 import { LocalEmbeddingProvider } from '../embeddings/local-provider.js';
 import { OpenAIEmbeddingProvider } from '../embeddings/openai-provider.js';
-import {
-  createAllTools,
-  ToolContext,
-  handleSearchContent,
-  handleSemanticSearch,
-  handleTextSearch,
-  handleReadFile,
-  handleWriteFile,
-  handleUpdateFile,
-  handleCreateFile,
-  handleDeleteFile,
-  handleGetFileMetadata,
-  handleGetTags,
-  handleGetFilesByTag,
-  handleGetBacklinks,
-  handleFindRelated,
-  handleGetGraphStats,
-  handleFindShortestPath,
-  handleGetBrokenLinks,
-  handleAnalyzeCommunities,
-  handleGetInfluentialFiles,
-  handleListVaults,
-  handleListFiles,
-  handleValidateFile,
-  handleSuggestTags,
-  handleGetTemplates,
-  handlePreviewTemplate,
-  handleGetRecentFiles,
-  handleBulkSearch,
-  handleBulkValidate,
-  handleReindexVault,
-  handleBulkTagOperation,
-  handleExportGraph,
-  handleAnalyzeVaultHealth,
-} from './tools/index.js';
+import { createAllTools, type ToolContext } from './tools/index.js';
+// Import all tool handlers
+import { 
+  handleSearchContent, 
+  handleSemanticSearch, 
+  handleTextSearch 
+} from './tools/search-tools.js';
+import { 
+  handleReadFile, 
+  handleWriteFile, 
+  handleUpdateFile, 
+  handleCreateFile, 
+  handleDeleteFile, 
+  handleGetFileMetadata 
+} from './tools/file-tools.js';
+import { 
+  handleGetTags, 
+  handleGetFilesByTag, 
+  handleGetBacklinks, 
+  handleFindRelated, 
+  handleGetGraphStats, 
+  handleFindShortestPath, 
+  handleGetBrokenLinks, 
+  handleAnalyzeCommunities, 
+  handleGetInfluentialFiles 
+} from './tools/graph-tools.js';
+import { 
+  handleListVaults, 
+  handleListFiles, 
+  handleValidateFile, 
+  handleSuggestTags, 
+  handleGetTemplates, 
+  handlePreviewTemplate, 
+  handleGetRecentFiles 
+} from './tools/discovery-tools.js';
+import { 
+  handleBulkSearch, 
+  handleBulkValidate, 
+  handleReindexVault, 
+  handleBulkTagOperation, 
+  handleExportGraph, 
+  handleAnalyzeVaultHealth 
+} from './tools/bulk-tools.js';
 import pino from 'pino';
 
 export interface MCPServerOptions {
@@ -70,14 +78,26 @@ export class MCPMyceliumServer {
   private performanceMetrics = new Map<string, { calls: number; totalTime: number; errors: number }>();
 
   constructor(private options: MCPServerOptions) {
-    this.logger = pino({
+    const loggerConfig: {
+      name: string;
+      level: string;
+      transport?: {
+        target: string;
+        options: { colorize: boolean };
+      };
+    } = {
       name: 'MCPMyceliumServer',
       level: options.logLevel || 'info',
-      transport: options.logLevel === 'debug' ? {
+    };
+    
+    if (options.logLevel === 'debug') {
+      loggerConfig.transport = {
         target: 'pino-pretty',
         options: { colorize: true },
-      } : undefined,
-    });
+      };
+    }
+    
+    this.logger = pino(loggerConfig);
 
     this.server = new Server(
       {
@@ -216,84 +236,84 @@ export class MCPMyceliumServer {
     });
   }
 
-  private async handleToolCall(name: string, args: any): Promise<any> {
+  private async handleToolCall(name: string, args: Record<string, unknown>): Promise<unknown> {
     const context = this.getToolContext();
 
     switch (name) {
-      // Search Tools
+      // Search tools
       case 'search_content':
-        return handleSearchContent(args, context);
+        return await handleSearchContent(args as any, context);
       case 'semantic_search':
-        return handleSemanticSearch(args, context);
+        return await handleSemanticSearch(args as any, context);
       case 'text_search':
-        return handleTextSearch(args, context);
-
-      // File Tools
+        return await handleTextSearch(args as any, context);
+      
+      // File tools
       case 'read_file':
-        return handleReadFile(args, context);
+        return await handleReadFile(args as any, context);
       case 'write_file':
-        return handleWriteFile(args, context);
+        return await handleWriteFile(args as any, context);
       case 'update_file':
-        return handleUpdateFile(args, context);
+        return await handleUpdateFile(args as any, context);
       case 'create_file':
-        return handleCreateFile(args, context);
+        return await handleCreateFile(args as any, context);
       case 'delete_file':
-        return handleDeleteFile(args, context);
+        return await handleDeleteFile(args as any, context);
       case 'get_file_metadata':
-        return handleGetFileMetadata(args, context);
-
-      // Graph Tools
+        return await handleGetFileMetadata(args as any, context);
+      
+      // Graph tools
       case 'get_tags':
-        return handleGetTags(args, context);
+        return await handleGetTags(args, context);
       case 'get_files_by_tag':
-        return handleGetFilesByTag(args, context);
+        return await handleGetFilesByTag(args, context);
       case 'get_backlinks':
-        return handleGetBacklinks(args, context);
+        return await handleGetBacklinks(args, context);
       case 'find_related':
-        return handleFindRelated(args, context);
+        return await handleFindRelated(args, context);
       case 'get_graph_stats':
-        return handleGetGraphStats(args, context);
+        return await handleGetGraphStats(args, context);
       case 'find_shortest_path':
-        return handleFindShortestPath(args, context);
+        return await handleFindShortestPath(args, context);
       case 'get_broken_links':
-        return handleGetBrokenLinks(args, context);
+        return await handleGetBrokenLinks(args, context);
       case 'analyze_communities':
-        return handleAnalyzeCommunities(args, context);
+        return await handleAnalyzeCommunities(args, context);
       case 'get_influential_files':
-        return handleGetInfluentialFiles(args, context);
-
-      // Discovery Tools
+        return await handleGetInfluentialFiles(args, context);
+      
+      // Discovery tools
       case 'list_vaults':
-        return handleListVaults(args, context);
+        return await handleListVaults(args, context);
       case 'list_files':
-        return handleListFiles(args, context);
+        return await handleListFiles(args, context);
       case 'validate_file':
-        return handleValidateFile(args, context);
+        return await handleValidateFile(args, context);
       case 'suggest_tags':
-        return handleSuggestTags(args, context);
+        return await handleSuggestTags(args, context);
       case 'get_templates':
-        return handleGetTemplates(args, context);
+        return await handleGetTemplates(args, context);
       case 'preview_template':
-        return handlePreviewTemplate(args, context);
+        return await handlePreviewTemplate(args, context);
       case 'get_recent_files':
-        return handleGetRecentFiles(args, context);
-
-      // Bulk Tools
+        return await handleGetRecentFiles(args, context);
+      
+      // Bulk tools
       case 'bulk_search':
-        return handleBulkSearch(args, context);
+        return await handleBulkSearch(args as any, context);
       case 'bulk_validate':
-        return handleBulkValidate(args, context);
+        return await handleBulkValidate(args as any, context);
       case 'reindex_vault':
-        return handleReindexVault(args, context);
+        return await handleReindexVault(args as any, context);
       case 'bulk_tag_operation':
-        return handleBulkTagOperation(args, context);
+        return await handleBulkTagOperation(args as any, context);
       case 'export_graph':
-        return handleExportGraph(args, context);
+        return await handleExportGraph(args as any, context);
       case 'analyze_vault_health':
-        return handleAnalyzeVaultHealth(args, context);
-
+        return await handleAnalyzeVaultHealth(args as any, context);
+        
       default:
-        throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+        throw new McpError(ErrorCode.MethodNotFound, `Tool implementation not found: ${name}`);
     }
   }
 
@@ -459,7 +479,7 @@ export class MCPMyceliumServer {
     initialized: boolean;
     vaults: number;
     tools: number;
-    performanceMetrics: Map<string, any>;
+    performanceMetrics: Map<string, { calls: number; totalTime: number; errors: number }>;
   } {
     return {
       initialized: this.isInitialized,

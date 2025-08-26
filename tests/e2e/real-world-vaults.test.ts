@@ -97,7 +97,7 @@ describe('Real-World Knowledge Base Testing', () => {
       // Even without embeddings, should find text matches
       const results = files.filter(file => 
         file.content.toLowerCase().includes('link') ||
-        file.title.toLowerCase().includes('link')
+        (file.frontmatter.title && file.frontmatter.title.toLowerCase().includes('link'))
       );
       
       expect(results.length).toBeGreaterThan(0);

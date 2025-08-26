@@ -1,0 +1,4 @@
+# Python dependencies for mcp-mycelium local embedding provider
+sentence-transformers>=2.2.2
+torch>=1.13.0
+numpy>=1.24.0
