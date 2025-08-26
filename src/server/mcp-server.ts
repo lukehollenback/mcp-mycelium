@@ -78,7 +78,14 @@ export class MCPMyceliumServer {
   private performanceMetrics = new Map<string, { calls: number; totalTime: number; errors: number }>();
 
   constructor(private options: MCPServerOptions) {
-    const loggerConfig: any = {
+    const loggerConfig: {
+      name: string;
+      level: string;
+      transport?: {
+        target: string;
+        options: { colorize: boolean };
+      };
+    } = {
       name: 'MCPMyceliumServer',
       level: options.logLevel || 'info',
     };
@@ -229,7 +236,7 @@ export class MCPMyceliumServer {
     });
   }
 
-  private async handleToolCall(name: string, args: any): Promise<any> {
+  private async handleToolCall(name: string, args: Record<string, unknown>): Promise<unknown> {
     const context = this.getToolContext();
 
     switch (name) {
@@ -472,7 +479,7 @@ export class MCPMyceliumServer {
     initialized: boolean;
     vaults: number;
     tools: number;
-    performanceMetrics: Map<string, any>;
+    performanceMetrics: Map<string, { calls: number; totalTime: number; errors: number }>;
   } {
     return {
       initialized: this.isInitialized,

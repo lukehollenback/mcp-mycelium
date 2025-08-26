@@ -1,6 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { VaultManager } from '../../core/vault-manager.js';
-import { SearchEngine, SearchQuery } from '../../core/search-engine.js';
+import { SearchEngine } from '../../core/search-engine.js';
 import { GraphAnalyzer } from '../../graph/graph-analyzer.js';
 import { createSearchTools } from './search-tools.js';
 import { createFileTools } from './file-tools.js';

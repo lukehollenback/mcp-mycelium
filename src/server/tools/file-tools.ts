@@ -1,5 +1,14 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ToolContext } from './index.js';
+import {
+  ReadFileArgs,
+  WriteFileArgs,
+  UpdateFileArgs,
+  CreateFileArgs,
+  DeleteFileArgs,
+  GetFileMetadataArgs,
+  FileMetadata
+} from './types.js';
 
 export function createFileTools(context: ToolContext): Tool[] {
   return [
@@ -159,14 +168,38 @@ export function createFileTools(context: ToolContext): Tool[] {
   ];
 }
 
-export async function handleReadFile(args: any, context: ToolContext): Promise<any> {
+export async function handleReadFile(args: ReadFileArgs, context: ToolContext): Promise<{
+  path: string;
+  content: string;
+  frontmatter: Record<string, unknown>;
+  metadata?: {
+    size: number;
+    created?: Date;
+    modified: Date;
+    tags: string[];
+    links: Array<{ target: string; text?: string }>;
+    exists: boolean;
+  };
+}> {
   const { path, vault, includeMetadata } = args;
   const { vaultManager } = context;
 
   try {
     const fileData = await vaultManager.readFile(path, vault);
 
-    const response: any = {
+    const response: {
+      path: string;
+      content: string;
+      frontmatter: Record<string, unknown>;
+      metadata?: {
+        size: number;
+        created?: Date;
+        modified: Date;
+        tags: string[];
+        links: Array<{ target: string; text?: string }>;
+        exists: boolean;
+      };
+    } = {
       path: fileData.info.relativePath,
       content: fileData.parsed.content,
       frontmatter: fileData.parsed.frontmatter,
@@ -189,7 +222,14 @@ export async function handleReadFile(args: any, context: ToolContext): Promise<a
   }
 }
 
-export async function handleWriteFile(args: any, context: ToolContext): Promise<any> {
+export async function handleWriteFile(args: WriteFileArgs, context: ToolContext): Promise<{
+  success: boolean;
+  path: string;
+  vault?: string;
+  valid?: boolean;
+  errors?: unknown[];
+  message?: string;
+}> {
   const { path, content, vault, validateOnly } = args;
   const { vaultManager } = context;
 
@@ -216,7 +256,17 @@ export async function handleWriteFile(args: any, context: ToolContext): Promise<
   }
 }
 
-export async function handleUpdateFile(args: any, context: ToolContext): Promise<any> {
+export async function handleUpdateFile(args: UpdateFileArgs, context: ToolContext): Promise<{
+  success: boolean;
+  path: string;
+  vault: string;
+  changes: {
+    oldSize: number;
+    newSize: number;
+    modified: Date;
+  };
+  message: string;
+}> {
   const { path, content, vault, preserveMetadata } = args;
   const { vaultManager } = context;
 
@@ -254,7 +304,13 @@ export async function handleUpdateFile(args: any, context: ToolContext): Promise
   }
 }
 
-export async function handleCreateFile(args: any, context: ToolContext): Promise<any> {
+export async function handleCreateFile(args: CreateFileArgs, context: ToolContext): Promise<{
+  success: boolean;
+  path: string;
+  vault: string;
+  templateApplied?: boolean;
+  message: string;
+}> {
   const { path, content, vault, template, frontmatter } = args;
   const { vaultManager } = context;
 
@@ -286,7 +342,12 @@ export async function handleCreateFile(args: any, context: ToolContext): Promise
   }
 }
 
-export async function handleDeleteFile(args: any, context: ToolContext): Promise<any> {
+export async function handleDeleteFile(args: DeleteFileArgs, context: ToolContext): Promise<{
+  success: boolean;
+  path: string;
+  vault: string;
+  message: string;
+}> {
   const { path, vault, confirm } = args;
   const { vaultManager } = context;
 
@@ -313,7 +374,7 @@ export async function handleDeleteFile(args: any, context: ToolContext): Promise
   }
 }
 
-export async function handleGetFileMetadata(args: any, context: ToolContext): Promise<any> {
+export async function handleGetFileMetadata(args: GetFileMetadataArgs, context: ToolContext): Promise<FileMetadata> {
   const { path, vault } = args;
   const { vaultManager } = context;
 
@@ -331,7 +392,7 @@ export async function handleGetFileMetadata(args: any, context: ToolContext): Pr
 
     const indexed = targetVault.indexer.getFile(path);
     
-    const metadata: any = {
+    const metadata: FileMetadata = {
       exists: true,
       path: fileInfo.relativePath,
       size: fileInfo.stats.size,

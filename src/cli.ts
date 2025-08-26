@@ -21,7 +21,14 @@ program
   .option('-d, --dry-run', 'Validate configuration without starting server', false)
   .option('-v, --validate', 'Validate vaults and configuration', false)
   .action(async (vaults: string[], options) => {
-    const loggerConfig: any = {
+    const loggerConfig: {
+      name: string;
+      level: string;
+      transport?: {
+        target: string;
+        options: { colorize: boolean };
+      };
+    } = {
       name: 'mcp-mycelium-cli',
       level: options.logLevel,
     };

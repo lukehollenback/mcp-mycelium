@@ -461,7 +461,7 @@ export class Validator {
     return result;
   }
 
-  private normalizeRuleResult(result: any, ruleName: string): ValidationResult {
+  private normalizeRuleResult(result: unknown, ruleName: string): ValidationResult {
     if (!result || typeof result !== 'object') {
       return {
         isValid: false,
