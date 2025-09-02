@@ -1,4 +1,4 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ToolContext } from './index.js';
 import { SearchQuery, SearchFilters } from '../../core/search-engine.js';
 import {

@@ -202,7 +202,7 @@ export class MCPMyceliumServer {
       return { tools };
     });
 
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    this.server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       if (!this.isInitialized) {
         throw new McpError(ErrorCode.InternalError, 'Server not initialized');
       }

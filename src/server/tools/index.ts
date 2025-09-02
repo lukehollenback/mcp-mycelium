@@ -1,4 +1,4 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { VaultManager } from '../../core/vault-manager.js';
 import { SearchEngine } from '../../core/search-engine.js';
 import { GraphAnalyzer } from '../../graph/graph-analyzer.js';

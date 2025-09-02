@@ -1,5 +1,5 @@
 import { FilesystemManager, FileInfo } from '../utils/filesystem.js';
-import { MarkdownParser, ParsedMarkdown } from '../utils/markdown-parser.js';
+import { MarkdownParser } from '../utils/markdown-parser.js';
 import { TagEngine } from '../graph/tag-engine.js';
 import { BacklinkEngine } from '../graph/backlink-engine.js';
 import { EmbeddingProvider, EmbeddingVector, LRUEmbeddingCache } from '../embeddings/embedding-provider.js';
@@ -57,10 +57,10 @@ export class Indexer {
   private indexBuildStartTime = 0;
 
   constructor(
-    private filesystem: FilesystemManager,
-    private parser: MarkdownParser,
-    private tagEngine: TagEngine,
-    private backlinkEngine: BacklinkEngine,
+    private _filesystem: FilesystemManager,
+    private _parser: MarkdownParser,
+    private _tagEngine: TagEngine,
+    private _backlinkEngine: BacklinkEngine,
     embeddingProvider?: EmbeddingProvider
   ) {
     this.embeddingProvider = embeddingProvider;
@@ -78,7 +78,7 @@ export class Indexer {
     try {
       this.logger.info('Starting initial index build');
 
-      const files = await this.filesystem.listMarkdownFiles();
+      const files = await this._filesystem.listMarkdownFiles();
       
       this.logger.info({ fileCount: files.length }, 'Found markdown files');
 
@@ -116,7 +116,7 @@ export class Indexer {
 
   async updateFile(filePath: string): Promise<void> {
     try {
-      const fileInfo = await this.filesystem.getFileInfo(filePath);
+      const fileInfo = await this._filesystem.getFileInfo(filePath);
       
       if (!fileInfo.exists) {
         await this.removeFile(filePath);
@@ -146,15 +146,15 @@ export class Indexer {
 
   async removeFile(filePath: string): Promise<void> {
     try {
-      const relativePath = this.filesystem.getRelativePath(filePath);
+      const relativePath = this._filesystem.getRelativePath(filePath);
       const existing = this.files.get(relativePath);
       
       if (!existing) {
         return;
       }
 
-      this.tagEngine.removeTags(relativePath);
-      this.backlinkEngine.removeFile(relativePath);
+      this._tagEngine.removeTags(relativePath);
+      this._backlinkEngine.removeFile(relativePath);
       this.files.delete(relativePath);
 
       this.logger.debug({ file: relativePath }, 'File removed from index');
@@ -174,15 +174,15 @@ export class Indexer {
     this.logger.info('Starting full reindex');
     
     this.files.clear();
-    this.tagEngine.clear();
-    this.backlinkEngine.clear();
+    this._tagEngine.clear();
+    this._backlinkEngine.clear();
     this.embeddingCache.clear();
 
     await this.buildInitialIndex();
   }
 
   getFile(filePath: string): IndexedFile | undefined {
-    const relativePath = this.filesystem.getRelativePath(filePath);
+    const relativePath = this._filesystem.getRelativePath(filePath);
     return this.files.get(relativePath);
   }
 
@@ -191,7 +191,7 @@ export class Indexer {
   }
 
   getFilesByTag(tags: string[]): IndexedFile[] {
-    const filePaths = this.tagEngine.getFilesByTags(tags);
+    const filePaths = this._tagEngine.getFilesByTags(tags);
     return filePaths.map(path => this.files.get(path)).filter(Boolean) as IndexedFile[];
   }
 
@@ -265,18 +265,18 @@ export class Indexer {
   }
 
   private async indexFile(fileInfo: FileInfo): Promise<void> {
-    const content = await this.filesystem.readFile(fileInfo.path);
-    const parsed = this.parser.parse(content, fileInfo.path);
+    const content = await this._filesystem.readFile(fileInfo.path);
+    const parsed = this._parser.parse(content, fileInfo.path);
     
     const contentHash = this.generateContentHash(content);
-    const plainText = this.parser.extractPlainText(parsed.content);
-    const chunks = this.parser.splitIntoChunks(plainText);
+    const plainText = this._parser.extractPlainText(parsed.content);
+    const chunks = this._parser.splitIntoChunks(plainText);
     
     const frontmatterTags = Array.isArray(parsed.frontmatter.tags) 
       ? parsed.frontmatter.tags 
       : [];
-    const allTags = this.parser.extractTags(parsed.content, frontmatterTags);
-    const links = this.parser.extractLinks(parsed.content);
+    const allTags = this._parser.extractTags(parsed.content, frontmatterTags);
+    const links = this._parser.extractLinks(parsed.content);
 
     const indexedFile: IndexedFile = {
       path: fileInfo.path,
@@ -300,16 +300,16 @@ export class Indexer {
 
     this.files.set(fileInfo.relativePath, indexedFile);
 
-    this.tagEngine.updateFileTags(fileInfo.relativePath, indexedFile.tags);
+    this._tagEngine.updateFileTags(fileInfo.relativePath, indexedFile.tags);
     
-    this.backlinkEngine.updateFileLinks(fileInfo.relativePath, indexedFile.links.map(l => ({
+    this._backlinkEngine.updateFileLinks(fileInfo.relativePath, indexedFile.links.map(l => ({
       target: l.target,
       text: l.text,
       line: l.line,
       type: l.type,
     })));
 
-    this.backlinkEngine.registerFileExists(fileInfo.relativePath);
+    this._backlinkEngine.registerFileExists(fileInfo.relativePath);
   }
 
   private async buildEmbeddings(): Promise<void> {

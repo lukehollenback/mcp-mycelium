@@ -46,7 +46,7 @@ export class FileMonitor extends EventEmitter {
       this.watcher = chokidar.watch(this.watchPath, {
         persistent: true,
         ignored: [
-          /(^|[\/\\])\../,
+          /(^|[/\\])\../,
           '**/node_modules/**',
           '**/.git/**',
           '**/.DS_Store',
