@@ -195,16 +195,36 @@ export class LocalEmbeddingProvider extends EmbeddingProvider {
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Python process startup timeout'));
-      }, 30000);
+      }, 5000); // Reduce timeout to 5 seconds for faster failure
+
+      let processExited = false;
+      
+      const onExit = () => {
+        processExited = true;
+        clearTimeout(timeout);
+        reject(new Error('Python process exited during startup - likely missing dependencies'));
+      };
+
+      // Listen for early exit
+      this.pythonProcess?.on('exit', onExit);
 
       const checkReady = () => {
-        if (this.pythonProcess && this.pythonProcess.pid) {
+        if (processExited) {
+          return;
+        }
+        
+        if (this.pythonProcess && this.pythonProcess.pid && !this.pythonProcess.killed) {
           clearTimeout(timeout);
-          resolve(undefined);
+          this.pythonProcess?.off('exit', onExit);
+          // Give the process a moment to fully initialize
+          setTimeout(() => resolve(undefined), 500);
+        } else {
+          // Check again in 200ms
+          setTimeout(checkReady, 200);
         }
       };
 
-      setTimeout(checkReady, 1000);
+      setTimeout(checkReady, 200);
     });
   }
 
@@ -238,7 +258,7 @@ export class LocalEmbeddingProvider extends EmbeddingProvider {
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(id);
         reject(new Error('Request timeout'));
-      }, this.config.timeout || 30000);
+      }, this.config.timeout || 5000); // Reduce default timeout
 
       this.pendingRequests.set(id, {
         resolve: (response: PythonEmbeddingResponse) => {

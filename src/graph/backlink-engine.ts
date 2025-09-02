@@ -75,16 +75,23 @@ export class BacklinkEngine {
       }
 
       const fileInfo = this.backlinks.get(normalizedPath)!;
-      fileInfo.outgoing = [...links];
+      // Only include internal links (not external URLs) in outgoing links
+      const internalLinks = links.filter(link => {
+        const resolved = this.resolveTargetPath(link.target, normalizedPath);
+        return resolved !== null;
+      });
+      fileInfo.outgoing = [...internalLinks];
 
-      for (const link of links) {
+      for (const link of internalLinks) {
         const targetPath = this.resolveTargetPath(link.target, normalizedPath);
-        this.addIncomingLink(targetPath, {
-          target: normalizedPath,
-          text: link.text,
-          line: link.line,
-          type: link.type,
-        });
+        if (targetPath !== null) {
+          this.addIncomingLink(targetPath, {
+            target: normalizedPath,
+            text: link.text,
+            line: link.line,
+            type: link.type,
+          });
+        }
       }
     } catch (error) {
       throw new BacklinkEngineError(
@@ -418,7 +425,12 @@ export class BacklinkEngine {
     return suggestions.slice(0, 5);
   }
 
-  private resolveTargetPath(target: string, currentPath: string): string {
+  private resolveTargetPath(target: string, currentPath: string): string | null {
+    // Skip external URLs - they shouldn't be part of the backlink graph
+    if (target.startsWith('http://') || target.startsWith('https://') || target.startsWith('mailto:')) {
+      return null;
+    }
+    
     if (target.startsWith('/')) {
       return this.normalizePath(target);
     }
