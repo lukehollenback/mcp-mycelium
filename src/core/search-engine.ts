@@ -252,11 +252,9 @@ export class SearchEngine {
       }
     }
 
-    return this.scoreAndRankFiles(
-      Array.from(fileScores.values()).map(r => r.file),
-      query,
-      searchQuery
-    );
+    // Return the combined results directly - they're already scored and filtered
+    const results = Array.from(fileScores.values());
+    return results.sort((a, b) => b.score - a.score);
   }
 
   private scoreAndRankFiles(files: IndexedFile[], query: string, searchQuery: SearchQuery): SearchResult[] {
@@ -301,12 +299,25 @@ export class SearchEngine {
       relevance.semantic * this._rankingWeights.semantic +
       relevance.tags * this._rankingWeights.tags +
       relevance.recency * this._rankingWeights.recency +
-      relevance.backlinks * this._rankingWeights.backlinks
+      relevance.backlinks * this._rankingWeights.backlinks +
+      relevance.pathRelevance * 0.2 // Add path relevance with reasonable weight
     );
   }
 
   private calculateSemanticScore(file: IndexedFile, query: string): number {
-    return 0;
+    if (!this._embeddingProvider || !file.embeddings || file.embeddings.length === 0) {
+      return 0;
+    }
+
+    try {
+      // This would require async, but we're in a sync method
+      // For now, return 0 and rely on text/tag matching
+      // TODO: Refactor to handle async semantic scoring properly
+      return 0;
+    } catch (error) {
+      this.logger.warn({ error }, 'Failed to calculate semantic score');
+      return 0;
+    }
   }
 
   private calculateTagScore(file: IndexedFile, query: string): number {
