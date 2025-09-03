@@ -2,6 +2,33 @@
 
 This document tracks all significant architectural decisions made during the development of MCP Mycelium.
 
+## Decision #2 - 2025-01-03 - Remove Python Dependencies and Local Embeddings
+
+**Context**: The original architecture included local sentence-transformers with Python dependencies alongside OpenAI API embeddings as an option. Python dependencies were causing installation and distribution issues for an MCP server that needs to work with `uvx`/`npx`.
+
+**Decision**: Remove all Python dependencies (sentence-transformers, torch, embedding_server.py, LocalEmbeddingProvider) and use OpenAI embeddings exclusively.
+
+**Rationale**:
+- Python dependencies were causing complex installation requirements that conflict with MCP server distribution model
+- OpenAI embeddings provide consistently high quality results  
+- Eliminates dependency management complexity and Python environment issues
+- Tests now fail hard when OpenAI API key is missing, ensuring proper configuration
+- Simpler architecture with single embedding provider path
+
+**Alternatives**:
+- Keep both providers but fix Python installation issues
+- Switch to different local embedding solution (WebAssembly-based)
+- Use cloud-hosted local model API
+
+**Impact**: 
+- Requires OpenAI API key for all embedding functionality
+- Eliminates Python installation complexity for end users
+- Tests now fail fast without proper API key configuration
+- Reduced codebase complexity and maintenance burden
+- Better distribution compatibility with npm/uvx/npx
+
+---
+
 ## Decision #1 - 2025-01-19 - Multi-Vault Architecture with Isolated Indexes
 
 **Context**: The system needs to support multiple knowledge bases (vaults) simultaneously while maintaining performance and data isolation.

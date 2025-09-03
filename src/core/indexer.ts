@@ -2,7 +2,7 @@ import { FilesystemManager, FileInfo } from '../utils/filesystem.js';
 import { MarkdownParser } from '../utils/markdown-parser.js';
 import { TagEngine } from '../graph/tag-engine.js';
 import { BacklinkEngine } from '../graph/backlink-engine.js';
-import { EmbeddingProvider, EmbeddingVector, LRUEmbeddingCache } from '../embeddings/embedding-provider.js';
+import { OpenAIEmbeddings, EmbeddingVector, LRUEmbeddingCache } from '../embeddings/openai-embeddings.js';
 import pino from 'pino';
 
 export interface IndexedFile {
@@ -50,7 +50,7 @@ export class IndexerError extends Error {
 export class Indexer {
   private files = new Map<string, IndexedFile>();
   private logger = pino({ name: 'Indexer' });
-  private embeddingProvider?: EmbeddingProvider;
+  private embeddingProvider?: OpenAIEmbeddings;
   private embeddingCache = new LRUEmbeddingCache(1000);
   private isBuilding = false;
   private lastIndexTime = new Date(0);
@@ -61,7 +61,7 @@ export class Indexer {
     private _parser: MarkdownParser,
     private _tagEngine: TagEngine,
     private _backlinkEngine: BacklinkEngine,
-    embeddingProvider?: EmbeddingProvider
+    embeddingProvider?: OpenAIEmbeddings
   ) {
     this.embeddingProvider = embeddingProvider;
   }
@@ -239,7 +239,7 @@ export class Indexer {
     return this.lastIndexTime;
   }
 
-  async setEmbeddingProvider(provider: EmbeddingProvider): Promise<void> {
+  async setEmbeddingProvider(provider: OpenAIEmbeddings): Promise<void> {
     this.embeddingProvider = provider;
     await this.buildEmbeddings();
   }

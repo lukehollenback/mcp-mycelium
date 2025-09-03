@@ -107,8 +107,9 @@ Once connected, AI assistants can use tools like:
 ```yaml
 server:
   embeddings:
-    provider: "local"  # or "openai"
-    model: "all-MiniLM-L6-v2"
+    provider: "openai"
+    model: "text-embedding-3-small"
+    api_key: "${OPENAI_API_KEY}"
   search:
     ranking_weights:
       semantic: 0.4
@@ -152,19 +153,24 @@ Designed for large knowledge bases:
 - ✅ Memory-efficient with configurable limits
 - ✅ Concurrent request handling
 
-## Embedding Providers
+## Embedding Provider
 
-### Local Models (Default)
-- **Privacy**: No data leaves your machine
-- **Cost**: Free to use
-- **Setup**: Automatic with sentence-transformers
-- **Quality**: Good for most use cases
-
-### OpenAI API
-- **Quality**: State-of-the-art embeddings
+### OpenAI API (Required)
+- **Quality**: State-of-the-art embeddings with `text-embedding-3-small`
 - **Speed**: Fast cloud processing
-- **Cost**: Pay per token
-- **Setup**: Requires API key
+- **Cost**: Pay per token (very affordable for most use cases)
+- **Setup**: Requires OpenAI API key
+
+#### Configuration
+Set your OpenAI API key as an environment variable:
+```bash
+export OPENAI_API_KEY="your-api-key-here"
+```
+
+Or create a `.env` file in your project:
+```bash
+OPENAI_API_KEY=your-api-key-here
+```
 
 ## Development
 
@@ -178,6 +184,9 @@ npm run build
 
 ### Run Tests
 ```bash
+# Set OpenAI API key first
+export OPENAI_API_KEY="your-api-key-here"
+
 npm test
 npm run test:coverage
 npm run test:performance
@@ -225,5 +234,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Acknowledgments
 
 - Built on the [Model Context Protocol](https://modelcontextprotocol.io/)
-- Powered by [sentence-transformers](https://www.sbert.net/)
+- Powered by [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings)
 - Inspired by tools like Obsidian, Roam Research, and Logseq

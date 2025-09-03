@@ -11,9 +11,7 @@ import { ConfigurationManager, type ConfigManager } from '../utils/config.js';
 import { VaultManager } from '../core/vault-manager.js';
 import { SearchEngine } from '../core/search-engine.js';
 import { GraphAnalyzer } from '../graph/graph-analyzer.js';
-import { EmbeddingProvider } from '../embeddings/embedding-provider.js';
-import { LocalEmbeddingProvider } from '../embeddings/local-provider.js';
-import { OpenAIEmbeddingProvider } from '../embeddings/openai-provider.js';
+import { OpenAIEmbeddings } from '../embeddings/openai-embeddings.js';
 import { createAllTools, type ToolContext } from './tools/index.js';
 // Import all tool handlers
 import { 
@@ -73,7 +71,7 @@ export class MCPMyceliumServer {
   private vaultManager?: VaultManager;
   private searchEngine?: SearchEngine;
   private graphAnalyzer?: GraphAnalyzer;
-  private embeddingProvider?: EmbeddingProvider;
+  private embeddingProvider?: OpenAIEmbeddings;
   private isInitialized = false;
   private performanceMetrics = new Map<string, { calls: number; totalTime: number; errors: number }>();
 
@@ -337,46 +335,20 @@ export class MCPMyceliumServer {
     const embeddingConfig = this.config.global.server.embeddings;
     
     try {
-      switch (embeddingConfig.provider) {
-        case 'local':
-          this.embeddingProvider = new LocalEmbeddingProvider({
-            model: embeddingConfig.model,
-            maxTokens: 8192,
-            batchSize: 32,
-          });
-          break;
-
-        case 'openai':
-          if (!embeddingConfig.api_key) {
-            this.logger.warn('OpenAI API key not provided, falling back to local embeddings');
-            this.embeddingProvider = new LocalEmbeddingProvider({
-              model: 'all-MiniLM-L6-v2',
-              maxTokens: 8192,
-              batchSize: 32,
-            });
-          } else {
-            this.embeddingProvider = new OpenAIEmbeddingProvider({
-              model: embeddingConfig.model,
-              apiKey: embeddingConfig.api_key,
-              maxTokens: 8191,
-              batchSize: 100,
-            });
-          }
-          break;
-
-        default:
-          throw new Error(`Unknown embedding provider: ${embeddingConfig.provider}`);
+      if (!embeddingConfig.api_key) {
+        throw new Error('OpenAI API key is required for embeddings functionality');
       }
 
-      const isReady = await this.embeddingProvider.isReady();
-      if (!isReady) {
-        this.logger.warn('Embedding provider not ready, semantic search will be limited');
-      } else {
-        this.logger.info({ 
-          provider: embeddingConfig.provider, 
-          model: embeddingConfig.model 
-        }, 'Embedding provider initialized');
-      }
+      this.embeddingProvider = new OpenAIEmbeddings({
+        model: embeddingConfig.model || 'text-embedding-3-small',
+        apiKey: embeddingConfig.api_key,
+        maxTokens: 8191,
+        batchSize: 100,
+      });
+
+      this.logger.info({ 
+        model: embeddingConfig.model 
+      }, 'OpenAI embedding provider initialized');
 
     } catch (error) {
       this.logger.warn({ error }, 'Failed to initialize embedding provider, continuing without embeddings');

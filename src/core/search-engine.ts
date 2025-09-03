@@ -1,7 +1,7 @@
 import { IndexedFile } from './indexer.js';
 import { TagEngine } from '../graph/tag-engine.js';
 import { BacklinkEngine } from '../graph/backlink-engine.js';
-import { EmbeddingProvider } from '../embeddings/embedding-provider.js';
+import { OpenAIEmbeddings } from '../embeddings/openai-embeddings.js';
 import { RankingWeights } from '../utils/config.js';
 import pino from 'pino';
 
@@ -60,7 +60,7 @@ export class SearchEngine {
   private pageRankCacheTTL = 300000; // 5 minutes
 
   constructor(
-    private _embeddingProvider: EmbeddingProvider | undefined,
+    private _embeddingProvider: OpenAIEmbeddings | undefined,
     private _tagEngine: TagEngine,
     private _backlinkEngine: BacklinkEngine,
     private _rankingWeights: RankingWeights,
