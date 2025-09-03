@@ -402,7 +402,13 @@ export class ConfigurationManager {
 
   getVaultConfig(vaultName: string, global: GlobalConfig): VaultConfig & { merged: VaultDefaultConfig } {
     const config = global.vaults.default_config;
-    const vaultConfig = { name: vaultName, path: vaultName };
+    const vaultConfig: VaultConfig = { 
+      name: vaultName, 
+      path: vaultName,
+      frontmatter: {},
+      links: {},
+      tags: {}
+    };
     
     return {
       ...vaultConfig,

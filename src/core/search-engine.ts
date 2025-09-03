@@ -1,7 +1,7 @@
 import { IndexedFile } from './indexer.js';
 import { TagEngine } from '../graph/tag-engine.js';
 import { BacklinkEngine } from '../graph/backlink-engine.js';
-import { EmbeddingProvider, EmbeddingVector } from '../embeddings/embedding-provider.js';
+import { OpenAIEmbeddings } from '../embeddings/openai-embeddings.js';
 import { RankingWeights } from '../utils/config.js';
 import pino from 'pino';
 
@@ -60,12 +60,12 @@ export class SearchEngine {
   private pageRankCacheTTL = 300000; // 5 minutes
 
   constructor(
-    private embeddingProvider: EmbeddingProvider | undefined,
-    private tagEngine: TagEngine,
-    private backlinkEngine: BacklinkEngine,
-    private rankingWeights: RankingWeights,
-    private maxResults: number = 100,
-    private similarityThreshold: number = 0.7
+    private _embeddingProvider: OpenAIEmbeddings | undefined,
+    private _tagEngine: TagEngine,
+    private _backlinkEngine: BacklinkEngine,
+    private _rankingWeights: RankingWeights,
+    private _maxResults: number = 100,
+    private _similarityThreshold: number = 0.7
   ) {}
 
   async search(query: SearchQuery, files: IndexedFile[]): Promise<SearchResult[]> {
@@ -105,12 +105,12 @@ export class SearchEngine {
   }
 
   async semanticSearch(query: string, files: IndexedFile[], limit?: number): Promise<SearchResult[]> {
-    if (!this.embeddingProvider) {
+    if (!this._embeddingProvider) {
       throw new SearchEngineError('No embedding provider available', query, 'semanticSearch');
     }
 
     try {
-      const queryEmbedding = await this.embeddingProvider.embed(query);
+      const queryEmbedding = await this._embeddingProvider.embed(query);
       const results: SearchResult[] = [];
 
       for (const file of files) {
@@ -120,14 +120,14 @@ export class SearchEngine {
 
         let bestScore = 0;
         for (const embedding of file.embeddings) {
-          const similarity = this.embeddingProvider.calculateCosineSimilarity(
+          const similarity = this._embeddingProvider.calculateCosineSimilarity(
             queryEmbedding.embedding,
             embedding
           );
           bestScore = Math.max(bestScore, similarity);
         }
 
-        if (bestScore >= this.similarityThreshold) {
+        if (bestScore >= this._similarityThreshold) {
           results.push({
             file,
             score: bestScore,
@@ -149,7 +149,7 @@ export class SearchEngine {
 
       return results
         .sort((a, b) => b.score - a.score)
-        .slice(0, limit || this.maxResults);
+        .slice(0, limit || this._maxResults);
 
     } catch (error) {
       throw new SearchEngineError(
@@ -204,7 +204,7 @@ export class SearchEngine {
 
     return results
       .sort((a, b) => b.score - a.score)
-      .slice(0, this.maxResults);
+      .slice(0, this._maxResults);
   }
 
   private async performHybridSearch(
@@ -215,7 +215,7 @@ export class SearchEngine {
     const textResults = this.textSearch(query, files);
     
     let semanticResults: SearchResult[] = [];
-    if (this.embeddingProvider) {
+    if (this._embeddingProvider) {
       try {
         semanticResults = await this.semanticSearch(query, files);
       } catch (error) {
@@ -227,7 +227,7 @@ export class SearchEngine {
     
     return combinedResults
       .sort((a, b) => b.score - a.score)
-      .slice(0, searchQuery.limit || this.maxResults);
+      .slice(0, searchQuery.limit || this._maxResults);
   }
 
   private combineSearchResults(
@@ -252,11 +252,9 @@ export class SearchEngine {
       }
     }
 
-    return this.scoreAndRankFiles(
-      Array.from(fileScores.values()).map(r => r.file),
-      query,
-      searchQuery
-    );
+    // Return the combined results directly - they're already scored and filtered
+    const results = Array.from(fileScores.values());
+    return results.sort((a, b) => b.score - a.score);
   }
 
   private scoreAndRankFiles(files: IndexedFile[], query: string, searchQuery: SearchQuery): SearchResult[] {
@@ -268,7 +266,7 @@ export class SearchEngine {
       const relevance = this.calculateRelevance(file, query, pageRanks, now);
       const finalScore = this.calculateFinalScore(relevance);
 
-      if (finalScore >= (searchQuery.threshold || this.similarityThreshold)) {
+      if (finalScore >= (searchQuery.threshold || this._similarityThreshold)) {
         results.push({
           file,
           score: finalScore,
@@ -298,15 +296,28 @@ export class SearchEngine {
 
   private calculateFinalScore(relevance: SearchResult['relevance']): number {
     return (
-      relevance.semantic * this.rankingWeights.semantic +
-      relevance.tags * this.rankingWeights.tags +
-      relevance.recency * this.rankingWeights.recency +
-      relevance.backlinks * this.rankingWeights.backlinks
+      relevance.semantic * this._rankingWeights.semantic +
+      relevance.tags * this._rankingWeights.tags +
+      relevance.recency * this._rankingWeights.recency +
+      relevance.backlinks * this._rankingWeights.backlinks +
+      relevance.pathRelevance * 0.2 // Add path relevance with reasonable weight
     );
   }
 
   private calculateSemanticScore(file: IndexedFile, query: string): number {
-    return 0;
+    if (!this._embeddingProvider || !file.embeddings || file.embeddings.length === 0) {
+      return 0;
+    }
+
+    try {
+      // This would require async, but we're in a sync method
+      // For now, return 0 and rely on text/tag matching
+      // TODO: Refactor to handle async semantic scoring properly
+      return 0;
+    } catch (error) {
+      this.logger.warn({ error }, 'Failed to calculate semantic score');
+      return 0;
+    }
   }
 
   private calculateTagScore(file: IndexedFile, query: string): number {
@@ -401,7 +412,7 @@ export class SearchEngine {
     let filtered = files;
 
     if (filters.tags && filters.tags.length > 0) {
-      const taggedFiles = this.tagEngine.getFilesByTags(filters.tags, filters.tagMode || 'and');
+      const taggedFiles = this._tagEngine.getFilesByTags(filters.tags, filters.tagMode || 'and');
       const taggedSet = new Set(taggedFiles);
       filtered = filtered.filter(f => taggedSet.has(f.relativePath));
     }
@@ -432,7 +443,7 @@ export class SearchEngine {
       return this.pageRankCache;
     }
 
-    this.pageRankCache = this.backlinkEngine.calculatePageRank();
+    this.pageRankCache = this._backlinkEngine.calculatePageRank();
     this.pageRankCacheTime = now;
     
     return this.pageRankCache;
@@ -445,9 +456,9 @@ export class SearchEngine {
     pageRankCacheSize: number;
   } {
     return {
-      maxResults: this.maxResults,
-      similarityThreshold: this.similarityThreshold,
-      rankingWeights: this.rankingWeights,
+      maxResults: this._maxResults,
+      similarityThreshold: this._similarityThreshold,
+      rankingWeights: this._rankingWeights,
       pageRankCacheSize: this.pageRankCache?.size || 0,
     };
   }
@@ -458,13 +469,13 @@ export class SearchEngine {
     rankingWeights?: RankingWeights;
   }): void {
     if (config.maxResults !== undefined) {
-      this.maxResults = config.maxResults;
+      this._maxResults = config.maxResults;
     }
     if (config.similarityThreshold !== undefined) {
-      this.similarityThreshold = config.similarityThreshold;
+      this._similarityThreshold = config.similarityThreshold;
     }
     if (config.rankingWeights !== undefined) {
-      this.rankingWeights = config.rankingWeights;
+      this._rankingWeights = config.rankingWeights;
     }
     
     this.pageRankCache = undefined;

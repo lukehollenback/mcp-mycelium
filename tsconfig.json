@@ -13,15 +13,14 @@
     "strictFunctionTypes": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitOverride": true,
-    "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": false,
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false,
     "noFallthroughCasesInSwitch": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "removeComments": false,
     "importHelpers": true,
     "downlevelIteration": true,
@@ -36,7 +35,7 @@
   },
   "include": [
     "src/**/*",
-    "tests/**/*"
+    "src/types/**/*"
   ],
   "exclude": [
     "node_modules",

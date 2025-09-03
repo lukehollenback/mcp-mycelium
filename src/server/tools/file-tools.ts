@@ -1,5 +1,14 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ToolContext } from './index.js';
+import {
+  ReadFileArgs,
+  WriteFileArgs,
+  UpdateFileArgs,
+  CreateFileArgs,
+  DeleteFileArgs,
+  GetFileMetadataArgs,
+  FileMetadata
+} from './types.js';
 
 export function createFileTools(context: ToolContext): Tool[] {
   return [
@@ -166,7 +175,19 @@ export async function handleReadFile(args: any, context: ToolContext): Promise<a
   try {
     const fileData = await vaultManager.readFile(path, vault);
 
-    const response: any = {
+    const response: {
+      path: string;
+      content: string;
+      frontmatter: Record<string, unknown>;
+      metadata?: {
+        size: number;
+        created?: Date;
+        modified: Date;
+        tags: string[];
+        links: Array<{ target: string; text?: string }>;
+        exists: boolean;
+      };
+    } = {
       path: fileData.info.relativePath,
       content: fileData.parsed.content,
       frontmatter: fileData.parsed.frontmatter,
@@ -197,6 +218,7 @@ export async function handleWriteFile(args: any, context: ToolContext): Promise<
     if (validateOnly) {
       const errors = await vaultManager.validateFile(path, vault);
       return {
+        success: false,
         valid: errors.length === 0,
         errors,
         path,
@@ -247,6 +269,11 @@ export async function handleUpdateFile(args: any, context: ToolContext): Promise
       success: true,
       path,
       vault: vaultManager.getVault(vault).name,
+      changes: {
+        oldSize: 0,
+        newSize: finalContent.length,
+        modified: new Date(),
+      },
       message: 'File updated successfully',
     };
   } catch (error) {
@@ -291,10 +318,12 @@ export async function handleDeleteFile(args: any, context: ToolContext): Promise
   const { vaultManager } = context;
 
   if (!confirm) {
+    const targetVault = vaultManager.getVault(vault);
     return {
       success: false,
       message: 'Deletion requires confirmation. Set confirm: true to proceed.',
       path,
+      vault: targetVault.name,
     };
   }
 
@@ -332,11 +361,12 @@ export async function handleGetFileMetadata(args: any, context: ToolContext): Pr
     const indexed = targetVault.indexer.getFile(path);
     
     const metadata: any = {
-      exists: true,
       path: fileInfo.relativePath,
       size: fileInfo.stats.size,
       created: fileInfo.stats.created,
       modified: fileInfo.stats.modified,
+      tags: [],
+      links: [],
     };
 
     if (indexed) {

@@ -21,7 +21,7 @@ A sophisticated Model Context Protocol (MCP) server for managing markdown-based 
 ### 3. Content Indexing & Search
 
 #### Embeddings Index
-- **Model Choice**: Configurable (local sentence-transformers default, OpenAI API optional)
+- **Model Choice**: OpenAI API embeddings (required)
 - **Lazy Loading**: Build embeddings on-demand or background processing
 - **Incremental Updates**: Re-embed only modified content
 - **Chunking Strategy**: Smart content chunking for large files (respect headers, paragraphs)
@@ -180,9 +180,9 @@ A sophisticated Model Context Protocol (MCP) server for managing markdown-based 
 ```yaml
 server:
   embeddings:
-    provider: "local" # or "openai"
-    model: "all-MiniLM-L6-v2"
-    api_key: "${OPENAI_API_KEY}" # if using OpenAI
+    provider: "openai"
+    model: "text-embedding-3-small"
+    api_key: "${OPENAI_API_KEY}"
   
   monitoring:
     debounce_ms: 1000
@@ -285,9 +285,7 @@ mcp-mycelium/
 │   │   ├── template-engine.ts      # Template application
 │   │   └── validator.ts            # Validation system
 │   ├── embeddings/
-│   │   ├── embedding-provider.ts   # Abstraction layer
-│   │   ├── local-provider.ts       # Local models
-│   │   └── openai-provider.ts      # OpenAI integration
+│   │   └── openai-embeddings.ts    # OpenAI API integration
 │   └── utils/
 │       ├── config.ts               # Configuration management
 │       ├── markdown-parser.ts      # Frontmatter + content
